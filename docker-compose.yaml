@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  mongodb:
+
+    image: 'mongo'
+    volumes:
+      - data:/data/db
+
+    # env_file:
+    #   - ./env/mongo.env
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: aadi
+      MONGO_INITDB_ROOT_PASSWORD: secret
+
+    networks:
+      - goals
+    
+    container_name: mongodb
+
+
+  backend:
+    
+    build: ./backend
+    ports:
+      - '80:80'
+    
+    volumes:
+      - logs:/app/logs
+      - ./backend:/app
+      - /app/node_modules
+
+    env_file:
+      - ./env/backend.env
+
+    networks:
+      - goals
+    
+    container_name: backend
+
+    depends_on:
+      - mongodb 
+
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    
+    volumes:
+      - ./frontend/src:/app/src
+    
+    networks:
+      - goals
+    
+    stdin_open: true
+    tty: true
+
+    container_name: frontend
+
+    depends_on:
+      - backend
+
+networks:
+  goals:
+    external: true
+
+volumes:
+  data:
+  logs:
